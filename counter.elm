@@ -1,16 +1,23 @@
-module Counter exposing ( Model, Msg, init, update, view )
+module Counter exposing (Model, Msg, init, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import String exposing (..)
 
 -- MODEL
 
-type alias Model = Int
+type alias Model =
+  { counter : Int
+  , maximum : Int
+  , minimum : Int
+  , incrementClicks : Int
+  , decrementClicks : Int
+  }
 
 init : Int -> Model
 init count =
-  count
+  Model count 0 0 0 0
 
 
 -- UPDATE
@@ -21,13 +28,25 @@ type Msg
 
 
 update : Msg -> Model -> Model
-update msg model =
+update msg ({counter, maximum, minimum, incrementClicks, decrementClicks} as model) =
   case msg of
     Increment ->
-      model + 1
+      { model
+        | counter = counter + 1
+        , maximum = (if maximum < counter + 1 then counter + 1 else maximum)
+        , minimum = minimum
+        , incrementClicks = incrementClicks + 1
+        , decrementClicks = decrementClicks
+      }
 
     Decrement ->
-      model - 1
+      { model
+        | counter = counter - 1
+        , maximum = maximum
+        , minimum = (if minimum > counter - 1 then counter - 1 else minimum)
+        , incrementClicks = incrementClicks
+        , decrementClicks = decrementClicks + 1
+      }
 
 
 -- VIEW
@@ -36,8 +55,13 @@ view : Model -> Html Msg
 view model =
   div []
     [ button [ onClick Increment ] [ text "+" ]
-    , div [ countStyle ] [ text (toString model) ]
+    , div [ countStyle ] [ text (toString model.counter) ]
     , button [ onClick Decrement ] [ text "-" ]
+    , div [] [ text (append "Maximum: " (toString model.maximum)) ]
+    , div [] [ text (append "Minimum: " (toString model.minimum)) ]
+    , div [] [ text (append "+ clicks: " (toString model.incrementClicks)) ]
+    , div [] [ text (append "- clicks: " (toString model.decrementClicks)) ]
+    , hr [] []
     ]
 
 
